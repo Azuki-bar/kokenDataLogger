@@ -142,12 +142,13 @@ func get(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	db = initDb("/home/azukibar/uec/koken/koken_contest/2021/kokenDataLogger/entifier.sqlite")
+	conf := RetrieveConf()
+	db = initDb(conf.DbPath)
 	defer db.Db.Close()
 
 	m := mux.NewRouter()
 	m.HandleFunc("/save", save)
 	m.HandleFunc("/get", get)
 	http.Handle("/", m)
-	http.ListenAndServe(":3000", m)
+	http.ListenAndServe(fmt.Sprintf(":%d", conf.Port), m)
 }
