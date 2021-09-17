@@ -21,7 +21,14 @@ type dbData struct {
 	Temperature float64   `db:"temperature"`
 	Humidity    float64   `db:"humidity"`
 }
-
+type returnDataType struct {
+	Serial      int
+	DeviceId    int
+	Date        time.Time
+	UnixTime    int64
+	Temperature float64
+	Humidity    float64
+}
 type rawData struct {
 	Device      int     `json:"device"`
 	Date        string  `json:"date"`
@@ -104,7 +111,20 @@ func (d *dbData) validate() bool {
 	upper := map[string]float64{"temp": 50, "hum": 100}
 	return (lower["temp"] < d.Temperature && d.Temperature < upper["temp"]) && (lower["hum"] < d.Humidity && d.Humidity < upper["hum"])
 }
-
+func formatReturnType(ds *[]dbData) *[]returnDataType {
+	var rs []returnDataType
+	for _, d := range *ds {
+		var r returnDataType
+		r.Serial = d.Serial
+		r.DeviceId = d.DeviceId
+		r.Date = d.Date
+		r.UnixTime = d.Date.Unix()
+		r.Temperature = d.Temperature
+		r.Humidity = d.Humidity
+		rs = append(rs, r)
+	}
+	return &rs
+}
 func get(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		err := errors.New("Method error. Please Use 'GET' method\n")
@@ -131,7 +151,7 @@ func get(w http.ResponseWriter, r *http.Request) {
 		httpErrorHandler(w, err, http.StatusInternalServerError)
 		return
 	}
-	b, err := json.Marshal(datas)
+	b, err := json.Marshal(formatReturnType(&datas))
 	if err != nil {
 		log.Fatal(err)
 	}
